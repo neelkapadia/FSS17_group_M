@@ -25,7 +25,7 @@ def process_data_and_enqueue(line,table,j):
 			j=j+1
 
 q = []
-input = open("input.txt","r")
+input = open("input.csv","r")
 line = input.readline()
 header = []
 process_header(line,header)
@@ -46,4 +46,4 @@ while line:
 	line = input.readline()
 
 for column in table:
-	print(table[column])
+	print(column)
