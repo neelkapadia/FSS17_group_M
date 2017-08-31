@@ -45,5 +45,5 @@ while line:
 	process_data_and_enqueue(line,table,j)
 	line = input.readline()
 
-print(header)
-print(table)
+for column in table:
+	print(table[column])
