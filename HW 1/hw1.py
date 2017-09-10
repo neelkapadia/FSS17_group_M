@@ -1,4 +1,5 @@
 from multiprocessing import Queue
+import sys
 
 
 def process_header(line,header):
@@ -25,7 +26,7 @@ def process_data_and_enqueue(line,table,j):
 			j=j+1
 
 q = []
-input = open("input.csv","r")
+input = open(sys.argv[1], 'rb')
 line = input.readline()
 header = []
 process_header(line,header)
