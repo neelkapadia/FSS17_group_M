@@ -2,7 +2,7 @@
 Contains the implementation of all homeworks using **Python**.
 
 ## HW1 - Reading CSV files
-###Prerequisite
+### Prerequisite
 Python 2.7.0
 ### Input
 Reads .csv file as command line argument.
