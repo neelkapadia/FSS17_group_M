@@ -1,4 +1,5 @@
 from multiprocessing import Queue
+import math
 
 
 class Table:
@@ -22,15 +23,51 @@ class Table:
             self.rows.append(row)
             self.rowCount=self.rowCount+1
 
+
+    def normalize(self):
+        for row in self.rows:
+            for cell in row.cells:
+                if self.headers[cell.columnNumber].isNum==1 and self.headers[cell.columnNumber].ignore==False :
+                    cell.value=(float)(int(cell.value)-self.headers[cell.columnNumber].minValue)/(float)(self.headers[cell.columnNumber].maxValue-self.headers[cell.columnNumber].minValue)
+
     def update_headers(self):
+        for row in self.rows[0]:
+            for cell in cells:
+                print(cell.value)
         for header in self.headers:
-            if header.isNum==1 and header.ignore==False:
+            #header.print_header_data()
+            if header.ignore==False:
                 for row in self.rows:
-                    if header.minValue>row.cells[header.columnNumber].value:
-                        header.minValue=row.cells[header.columnNumber].value
-                    if header.maxValue<row.cells[header.columnNumber].value:
-                        header.maxValue=row.cells[header.columnNumber].value
-                    header.sum = header.sum + row.cells[header.columnNumber].value
+                    if header.isNum==1:
+                        #print("M " + str(row.cells[header.columnNumber].value))
+                        if header.minValue>row.cells[header.columnNumber].value:
+                            header.minValue=row.cells[header.columnNumber].value
+                        #print("X " + str(header.maxValue) + "   " + str(row.cells[header.columnNumber].value))
+                        if header.maxValue<row.cells[header.columnNumber].value:
+                            header.maxValue=row.cells[header.columnNumber].value
+                        header.sum = header.sum + row.cells[header.columnNumber].value
+                        header.totalElements=header.totalElements+1
+                    '''else:
+                        count=header.frequency.get(row.cells[header.columnNumber].value,0)
+                        count=count+1
+                        header.frequency[row.cells[header.columnNumber].value]=count
+                        header.totalElements = header.totalElements + 1'''
+
+
+
+    def calculate_entropy(self):
+        for row in self.rows:
+            for cell in row.cells:
+                print(cell.value)
+        for header in self.headers:
+            sum=0
+            if header.isNum ==0 and header.ignore==False:
+                for key in header.frequency.keys():
+                    #print(key +" "+ str(header.frequency.get(key,0)))
+                    p=header.frequency[key]/header.totalElements
+                    sum=sum-(p*math.log(p,2))
+                header.entropy=sum
+                #print(str(header.columnNumber) +"  "+ str(header.entropy))
 
 
 
@@ -40,10 +77,15 @@ class Header:
     ignore=False
     isNum=0
     weight=0
-    minValue=0
-    maxValue=0
+    minValue=10000
+    maxValue=-10000
     goal=0
     sum=0
+    totalElements=0
+    frequency={}
+
+    def print_header_data(self):
+        print(str(self.columnNumber)+" "+str(self.columnName)+" "+str(self.minValue)+" "+str(self.maxValue)+" "+str(self.totalElements))
 
     def __init__(self,ignore,isNum,weight,minValue,maxValue,goal):
         self.ignore=ignore
@@ -52,9 +94,6 @@ class Header:
         self.minValue=minValue
         self.maxValue=maxValue
         self.goal=goal
-
-
-
 
 class Row:
     cells=[]
@@ -73,7 +112,6 @@ class Row:
                     cell.value=int(x)
                 else:
                     cell.value = x
-                table.update_headers()
                 self.cells.append(cell)
             i=i+1
 
@@ -92,27 +130,27 @@ def create_table(name):
 
 def add_headers(table,line):
     def questionMark():
-        header = Header(True, 1, 1, 0, 0, 0)
+        header = Header(True, 1, 1, 10000, -10000, 0)
         return header
 
     def dollar():
-        header=Header(False,1,1,0,0,0)
+        header=Header(False,1,1,10000, -10000,0)
         return header
 
     def lesser():
-        header = Header(False, 1, -1, 0, 0, 1)
+        header = Header(False, 1, -1, 10000, -10000, 1)
         return header
 
     def greater():
-        header = Header(False, 1, 1, 0, 0, 1)
+        header = Header(False, 1, 1, 10000, -10000, 1)
         return header
 
     def exclamation():
-        header = Header(False,0, 1, 0, 0, 0)
+        header = Header(False,0, 1, 10000, -10000, 0)
         return header
 
     def default():
-        header = Header(False, 0, 1, 0, 0, 0)
+        header = Header(False, 0, 1,10000, -10000, 0)
         return header
 
     # map the inputs to the function blocks
@@ -139,11 +177,9 @@ def add_headers(table,line):
             else:
                 header=options["default"]()
                 header.columnName=x
+                header.columnNumber = i
                 table.headers.append(header)
                 i = i + 1
-
-
-
     return table
 
 
@@ -211,7 +247,11 @@ if __name__=='__main__':
 
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
+    #table.normalize()
+    table.update_headers()
 
-    for header in table.headers:
-        print(header.sum)
+
+    #table.calculate_entropy()
+
+
 
