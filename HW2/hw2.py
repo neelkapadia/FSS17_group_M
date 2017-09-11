@@ -6,6 +6,8 @@ class Table:
     name=""
     headers=[]
     rows=[]
+    goals=[]
+    list=[]
     rowCount=0
     def __init__(self,name):
         self.name=name
@@ -19,7 +21,8 @@ class Table:
     def add_rows(self,input):
         for line in input:
             row=Row(self.rowCount)
-            row.break_line_into_cells(line,self)
+            _cells=row.break_line_into_cells(line,self)
+            row.cells=_cells
             self.rows.append(row)
             self.rowCount=self.rowCount+1
 
@@ -31,11 +34,8 @@ class Table:
                     cell.value=(float)(int(cell.value)-self.headers[cell.columnNumber].minValue)/(float)(self.headers[cell.columnNumber].maxValue-self.headers[cell.columnNumber].minValue)
 
     def update_headers(self):
-        for row in self.rows[0]:
-            for cell in cells:
-                print(cell.value)
         for header in self.headers:
-            #header.print_header_data()
+            _frequency = {}
             if header.ignore==False:
                 for row in self.rows:
                     if header.isNum==1:
@@ -47,28 +47,64 @@ class Table:
                             header.maxValue=row.cells[header.columnNumber].value
                         header.sum = header.sum + row.cells[header.columnNumber].value
                         header.totalElements=header.totalElements+1
-                    '''else:
-                        count=header.frequency.get(row.cells[header.columnNumber].value,0)
+                    else:
+
+                        count=_frequency.get(row.cells[header.columnNumber].value,0)
                         count=count+1
-                        header.frequency[row.cells[header.columnNumber].value]=count
-                        header.totalElements = header.totalElements + 1'''
+                        _frequency[row.cells[header.columnNumber].value]=count
+                        header.totalElements = header.totalElements + 1
+                        header.frequency=_frequency
 
 
 
     def calculate_entropy(self):
-        for row in self.rows:
-            for cell in row.cells:
-                print(cell.value)
         for header in self.headers:
-            sum=0
+            sum=0.0
             if header.isNum ==0 and header.ignore==False:
                 for key in header.frequency.keys():
-                    #print(key +" "+ str(header.frequency.get(key,0)))
-                    p=header.frequency[key]/header.totalElements
-                    sum=sum-(p*math.log(p,2))
-                header.entropy=sum
-                #print(str(header.columnNumber) +"  "+ str(header.entropy))
+                    p=(float(header.frequency[key])/float(header.totalElements))
+                    sum=sum-(p * (math.log(p,2)))
+                header.diversity=sum
+                #print("Div: " + str(header.diversity))
+            elif header.isNum ==1 and header.ignore==False:
+                for row in self.rows:
+                    x = row.cells[header.columnNumber].value
+                    sum = sum + (x-(float(header.sum)/float(header.totalElements)))**2
+                header.diversity=(sum/float(header.totalElements))**(0.5)
+                #print("Div: "+str(header.diversity))
 
+    def calculate_domination(self,rowNumber1,rowNumber2):
+        row1=self.rows[rowNumber1]
+        row2=self.rows[rowNumber2]
+        sum1=0.0
+        sum2=0.0
+        for i in range(0,len(row1.cells)):
+            if self.headers[i].ignore == False and self.headers[i].isNum == 1:
+                w = self.headers[i].weight
+                x= row1.cells[i].value
+                y= row2.cells[i].value
+                n= len(self.goals)
+                sum1 = sum1 -  ((2.718)**(w * (x - y) / n))
+                sum2 = sum2 - ((2.718) ** (w * (y - x) / n))
+        if sum1>sum2:
+            self.list[rowNumber1].append(rowNumber2)
+        else:
+            self.list[rowNumber2].append(rowNumber1)
+
+    def find_dominating_rows(self):
+        for i in range(0,len(self.rows)):
+            miniList=[]
+            self.list.append(miniList)
+        for i in range(0,len(self.rows)):
+            for j in range(i+1,len(self.rows)):
+                self.calculate_domination(i,j)
+
+    def print_dominating_row(self):
+        for i in range(0,len(self.list)):
+            if len(self.list[i])==0:
+                print(str(i))
+                for cell in self.rows[i].cells:
+                    print(cell.value)
 
 
 class Header:
@@ -103,6 +139,7 @@ class Row:
 
 
     def break_line_into_cells(self,line,table):
+        _cells=[]
         i=0
         for x in line:  # split using delimiter
             x = x.strip()  # remove whitespaces
@@ -112,9 +149,9 @@ class Row:
                     cell.value=int(x)
                 else:
                     cell.value = x
-                self.cells.append(cell)
+                _cells.append(cell)
             i=i+1
-
+        return _cells
 
 class Cell:
     columnNumber=0
@@ -123,33 +160,34 @@ class Cell:
         self.columnNumber=columnNumber
         self.rowNumber=rowNumber
 
-
 def create_table(name):
     table = Table(name)
     return table
 
 def add_headers(table,line):
-    def questionMark():
+    def questionMark(i):
         header = Header(True, 1, 1, 10000, -10000, 0)
         return header
 
-    def dollar():
+    def dollar(i):
         header=Header(False,1,1,10000, -10000,0)
         return header
 
-    def lesser():
+    def lesser(i):
         header = Header(False, 1, -1, 10000, -10000, 1)
+        table.goals.append(i)
         return header
 
-    def greater():
+    def greater(i):
         header = Header(False, 1, 1, 10000, -10000, 1)
+        table.goals.append(i)
         return header
 
-    def exclamation():
+    def exclamation(i):
         header = Header(False,0, 1, 10000, -10000, 0)
         return header
 
-    def default():
+    def default(i):
         header = Header(False, 0, 1,10000, -10000, 0)
         return header
 
@@ -169,20 +207,18 @@ def add_headers(table,line):
         if x != "":
             firstElement=x[:1]
             if ord(firstElement)<65:
-                header=options[firstElement]()
+                header=options[firstElement](i)
                 header.columnName=x[1:]
                 header.columnNumber=i
                 table.headers.append(header)
                 i = i + 1
             else:
-                header=options["default"]()
+                header=options["default"](i)
                 header.columnName=x
                 header.columnNumber = i
                 table.headers.append(header)
                 i = i + 1
     return table
-
-
 
 def get_clean_data():
     def process_header(line, header):
@@ -247,11 +283,11 @@ if __name__=='__main__':
 
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
-    #table.normalize()
     table.update_headers()
-
-
-    #table.calculate_entropy()
+    table.normalize()
+    table.calculate_entropy()
+    table.find_dominating_rows()
+    table.print_dominating_row()
 
 
 
