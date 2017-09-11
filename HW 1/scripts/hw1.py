@@ -13,7 +13,7 @@ def process_header(line,header):
 		if x!= "":
 			header.append(x)
 
-def process_data_and_enqueue(line,table,j):
+def process_data_and_enqueue(line,table,j,i):
 	try:
 		comment_loc = line.index("#")   #detect the comments
 	except:
@@ -22,8 +22,11 @@ def process_data_and_enqueue(line,table,j):
 	for x in line.split(','):			#split using delimiter
 		x = x.strip()					#remove whitespaces
 		if x!= "":
-			table[j%column_numbers].append(x)
+			table[i].append(x)
 			j=j+1
+			if j%column_numbers == 0:
+				i=i+1
+
 
 q = []
 input = open(sys.argv[1], 'rb')
@@ -31,20 +34,31 @@ line = input.readline()
 header = []
 process_header(line,header)
 table=[]
-for element in header:
-	minitable=[]
-	minitable.append(element)
-	table.append(minitable)
-	
+table.append(header)
+
+
 column_numbers=len(header)
 
 #print(header)
 
 line = input.readline()
 j=0
+i=0
 while line:
-	process_data_and_enqueue(line,table,j)
+	process_data_and_enqueue(line,table,j,i)
 	line = input.readline()
 
-for column in table:
-	print(column)
+minitable=[]
+t=[]
+i=0
+for element in table[0]:
+	minitable.append(element)
+	i=i+1
+	if i%column_numbers == 0:
+		t.append(minitable)
+		minitable=[]
+
+
+
+for row in t:
+	print(row)
