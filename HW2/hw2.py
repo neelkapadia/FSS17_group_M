@@ -22,10 +22,14 @@ class Table:
     def add_rows(self,input):
         for line in input:
             row=Row(self.rowCount)
-            _cells=row.break_line_into_cells(line,self)
-            row.cells=_cells
-            self.rows.append(row)
-            self.rowCount=self.rowCount+1
+            try:
+                _cells=row.break_line_into_cells(line,self)
+                row.cells = _cells
+                self.rows.append(row)
+                self.rowCount = self.rowCount + 1
+            except:
+                count=0
+
 
 
     def normalize(self):
@@ -161,7 +165,7 @@ class Row:
             if x != "" and table.get_column_ignore!=True :
                 cell=Cell(i,self.rowNumber)
                 if table.get_column_type(i) == 1:
-                    cell.value=int(x)
+                    cell.value=float(x)
                 else:
                     cell.value = x
                 _cells.append(cell)
@@ -295,7 +299,6 @@ def get_clean_data():
 if __name__=='__main__':
     inputTable = get_clean_data()
     table = create_table('DataTable')
-
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
     table.update_headers()
