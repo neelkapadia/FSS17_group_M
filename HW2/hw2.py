@@ -83,7 +83,7 @@ class Table:
         row2=self.rows[rowNumber2]
         sum1=0.0
         sum2=0.0
-        for i in range(0,len(row1.cells)):
+        for i in self.goals:
             if self.headers[i].ignore == False and self.headers[i].isNum == 1:
                 w = self.headers[i].weight
                 x= row1.cells[i].value
@@ -299,6 +299,7 @@ def get_clean_data():
 if __name__=='__main__':
     inputTable = get_clean_data()
     table = create_table('DataTable')
+
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
     table.update_headers()
