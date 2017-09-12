@@ -266,7 +266,7 @@ def get_clean_data():
                     i = i + 1
 
     q = []
-    input = open("input.csv", "r")
+    input = open(sys.argv[1], 'rb')
     line = input.readline()
     header = []
     process_header(line, header)
