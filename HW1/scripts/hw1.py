@@ -58,7 +58,7 @@ line = input.readline()
 j=0
 i=0
 while line:
-	process_data_and_enqueue(line,table,j,i)
+	process_data_and_enqueue(line,table,j,i,list)
 	line = input.readline()
 
 minitable=[]
