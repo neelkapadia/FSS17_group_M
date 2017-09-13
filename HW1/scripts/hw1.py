@@ -2,7 +2,7 @@ from multiprocessing import Queue
 import sys
 
 
-def process_header(line,header):
+def process_header(line,header,list):
 	try:
 		comment_loc = line.index("#")   #detect the comments
 	except:
@@ -11,9 +11,15 @@ def process_header(line,header):
 	for x in line.split(','):			#split using delimiter
 		x = x.strip()					#remove whitespaces
 		if x!= "":
+			y=x[:1]
 			header.append(x)
+			if ord(y)<65:
+				list.append(1)
+			else:
+				list.append(0)
 
-def process_data_and_enqueue(line,table,j,i):
+
+def process_data_and_enqueue(line,table,j,i,list):
 	try:
 		comment_loc = line.index("#")   #detect the comments
 	except:
@@ -23,7 +29,11 @@ def process_data_and_enqueue(line,table,j,i):
 		for x in line.split(','):			#split using delimiter
 			x = x.strip()					#remove whitespaces
 			if x!= "":
-				table[i].append(x)
+				if list[j]==1:
+					y=float(x)
+				else:
+					y=x
+				table[i].append(y)
 				j=j+1
 				if j%column_numbers == 0:
 					i=i+1
@@ -34,7 +44,8 @@ q = []
 input = open(sys.argv[1], 'rb')
 line = input.readline()
 header = []
-process_header(line,header)
+list=[]
+process_header(line,header,list)
 table=[]
 table.append(header)
 
