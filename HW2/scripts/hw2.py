@@ -106,7 +106,7 @@ class Table:
 
     def print_top5_dominating_row(self):
         print("Top 5 dominating rows:")
-        for j in range(0, 5):
+        for j in range(0, 10):
             for i in range(0,len(self.list)):
                 if len(self.list[i])==j:
                     sys.stdout.write(str(i)+" ")
@@ -117,7 +117,7 @@ class Table:
     def print_bottom5_dominating_row(self):
         print("Bottom 5 dominating rows:")
         n=len(self.list)
-        for j in range(n-5, n):
+        for j in range(n-10, n):
             for i in range(0,len(self.list)):
                 if len(self.list[i])==j:
                     sys.stdout.write(str(i)+" ")
