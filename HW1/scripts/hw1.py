@@ -18,15 +18,17 @@ def process_data_and_enqueue(line,table,j,i):
 		comment_loc = line.index("#")   #detect the comments
 	except:
 		comment_loc = len(line)
-	line = line[0:comment_loc]			#eliminate the comments
-	for x in line.split(','):			#split using delimiter
-		x = x.strip()					#remove whitespaces
-		if x!= "":
-			table[i].append(x)
-			j=j+1
-			if j%column_numbers == 0:
-				i=i+1
-
+	try:
+		line = line[0:comment_loc]			#eliminate the comments
+		for x in line.split(','):			#split using delimiter
+			x = x.strip()					#remove whitespaces
+			if x!= "":
+				table[i].append(x)
+				j=j+1
+				if j%column_numbers == 0:
+					i=i+1
+	except:
+		print("Bad Line :"+str(line))
 
 q = []
 input = open(sys.argv[1], 'rb')
