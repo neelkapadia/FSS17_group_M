@@ -40,8 +40,12 @@ def process_data_and_enqueue(line,table,j,i,list):
 					i=i+1
 	except:
 		print("Bad Line :"+str(line))
+<<<<<<< HEAD
 	
 
+=======
+		table.pop(i)
+>>>>>>> f44bf1af3b8bce7d0b0d2022f7feae1588691bab
 q = []
 input = open(sys.argv[1], 'rb')
 line = input.readline()
