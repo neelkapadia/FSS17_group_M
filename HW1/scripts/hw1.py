@@ -39,7 +39,7 @@ def process_data_and_enqueue(line,table,j,i,list):
 					i=i+1
 	except:
 		print("Bad Line :"+str(line))
-
+		table.pop(i)
 q = []
 input = open(sys.argv[1], 'rb')
 line = input.readline()
