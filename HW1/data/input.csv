@@ -8,7 +8,7 @@ rainy,68,80,FALSE,,
 rainy,65,70,TRUE,4,10
 overcast,64,65,TRUE,30,60
 sunny,72,95,FALSE,7,20 #adsas
-sunny,69,70,FALSE,70,70
+sunny,69,70,FALSE,70_wa,70
 rainy,75,80,FALSE,80,40
 sunny,75,70,TRUE,wrasd_30,50
 overcast,72,90,TRUE,Wasd_60,50

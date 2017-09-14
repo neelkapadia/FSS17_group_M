@@ -1,6 +1,6 @@
 from multiprocessing import Queue
 import sys
-
+from datetime import datetime
 
 def process_header(line,header,list):
 	try:
@@ -23,10 +23,10 @@ def process_data_and_enqueue(line,table,j,i,list):
 	try:
 		comment_loc = line.index("#")   #detect the comments
 	except:
-		comment_loc = len(line)
+		comment_loc = len(line)        
 	try:
 		line = line[0:comment_loc]			#eliminate the comments
-                
+                temp = []
 		for x in line.split(','):			#split using delimiter
 			x = x.strip()					#remove whitespaces
 			if x!= "":
@@ -34,18 +34,15 @@ def process_data_and_enqueue(line,table,j,i,list):
 					y=float(x)
 				else:
 					y=x
-				table[i].append(y)
+				temp.append(y)
 				j=j+1
-				if j%column_numbers == 0:
-					i=i+1
+		table[i] = table[i] + temp
+		if j%column_numbers == 0:
+			i=i+1
 	except:
-		print("Bad Line :"+str(line))
-<<<<<<< HEAD
+		print("Bad Line: "+str(line))
 	
-
-=======
-		table.pop(i)
->>>>>>> f44bf1af3b8bce7d0b0d2022f7feae1588691bab
+print("Program Start(before cleansing): " + str(datetime.now()))
 q = []
 input = open(sys.argv[1], 'rb')
 line = input.readline()
@@ -77,7 +74,7 @@ for element in table[0]:
 		t.append(minitable)
 		minitable=[]
 
-
+print("Program End(after cleansing): " + str(datetime.now()))
 
 for row in t:
 	print(row)
