@@ -26,6 +26,7 @@ def process_data_and_enqueue(line,table,j,i,list):
 		comment_loc = len(line)
 	try:
 		line = line[0:comment_loc]			#eliminate the comments
+                
 		for x in line.split(','):			#split using delimiter
 			x = x.strip()					#remove whitespaces
 			if x!= "":
@@ -39,6 +40,7 @@ def process_data_and_enqueue(line,table,j,i,list):
 					i=i+1
 	except:
 		print("Bad Line :"+str(line))
+	
 
 q = []
 input = open(sys.argv[1], 'rb')
