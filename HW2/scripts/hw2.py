@@ -104,26 +104,33 @@ class Table:
             for j in range(i+1,len(self.rows)):
                 self.calculate_domination(i,j)
 
-    def print_top5_dominating_row(self):
-        print("Top 5 dominating rows:")
+    def print_top5_dominating_row(self,inputTable,headerLine,outputFile):
+        outputFile.write("Top 10 dominating rows:\n")
+        for attribute in headerLine:
+            outputFile.write(str(attribute) + "\t")
+        outputFile.write("\n")
         for j in range(0, 10):
             for i in range(0,len(self.list)):
                 if len(self.list[i])==j:
-                    sys.stdout.write(str(i)+" ")
-                    for cell in self.rows[i].cells:
-                        sys.stdout.write(str(cell.value) +" ")
-            print("")
+                    #outputFile.write(str(i)+"\t")
+                    for cell in inputTable[i]:
+                        outputFile.write(str(cell) +"\t")
+            outputFile.write("\n")
+        outputFile.write("\n \n")
 
-    def print_bottom5_dominating_row(self):
-        print("Bottom 5 dominating rows:")
+    def print_bottom5_dominating_row(self,inputTable,headerLine,outputFile):
+        outputFile.write("Bottom 10 dominating rows:\n")
+        for attribute in headerLine:
+            outputFile.write(str(attribute) + "\t")
+        outputFile.write("\n")
         n=len(self.list)
         for j in range(n-10, n):
             for i in range(0,len(self.list)):
                 if len(self.list[i])==j:
-                    sys.stdout.write(str(i)+" ")
-                    for cell in self.rows[i].cells:
-                        sys.stdout.write(str(cell.value) +" ")
-            print("")
+                    #outputFile.write(str(i)+"\t")
+                    for cell in inputTable[i]:
+                        outputFile.write(str(cell) +"\t")
+            outputFile.write("\n")
 
 
 class Header:
@@ -266,7 +273,10 @@ def get_clean_data():
                     i = i + 1
 
     q = []
-    input = open(sys.argv[1], 'rb')
+    try:
+        input = open(sys.argv[1], 'rb')
+    except:
+        input = open("input.csv", 'rb')
     line = input.readline()
     header = []
     process_header(line, header)
@@ -297,17 +307,20 @@ def get_clean_data():
 
 
 if __name__=='__main__':
+    outputFile=open('output.txt','w')
     inputTable = get_clean_data()
     table = create_table('DataTable')
-
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
+
     table.update_headers()
     table.normalize()
     table.calculate_entropy()
     table.find_dominating_rows()
-    table.print_top5_dominating_row()
-    table.print_bottom5_dominating_row()
+    table.print_top5_dominating_row(inputTable[1:],inputTable[0],outputFile)
+    table.print_bottom5_dominating_row(inputTable[1:],inputTable[0],outputFile)
+    outputFile.close()
+
 
 
 
