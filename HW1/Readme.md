@@ -14,4 +14,5 @@ Headers in .csv file are identified and according to that rows are classified. O
 
 Test
 
-To run program using command line, Ex. python scripts/hw1.py data/input.csv
+To run program using command line:
+python scripts/hw1.py data/input.csv
