@@ -39,37 +39,37 @@ def getUnsupervisedBins(num_column):
         
     return unsuper_dict
 
-def print_unsuper(unsuper_dict):
+def print_unsuper(unsuper_dict,outputFile):
     k = sorted(unsuper_dict.keys())
     for i in k:
         high = unsuper_dict[i][len(unsuper_dict[i])-1]
         low = unsuper_dict[i][0]
         span = high - low
         n = len(unsuper_dict[i])
-        print str(i) + "\tn = " + str(n) + "\tSpan = " + str(span) + "\tHigh = " + str(high) + "\tLow = " + str(low)
+        outputFile.write(str(i) + "\tn = " + str(n) + "\tSpan = " + str(span) + "\tHigh = " + str(high) + "\tLow = " + str(low)+"\n")
 
-def unsupervised_discretization():
+def unsupervised_discretization(outputFile):
     num_column=[]
     unsuper_dict = {}
     num_column = getList()
     num_column.sort()
     unsuper_dict = getUnsupervisedBins(num_column)
-    print("Unsupervised learner : ")
-    print_unsuper(unsuper_dict)
+    outputFile.write("Unsupervised learner : \n")
+    print_unsuper(unsuper_dict,outputFile)
     return num_column
 
-def print_super(super_dict):
-    print("")
-    print("Supervised Learner:")
+def print_super(super_dict,outputFile):
+    outputFile.write("\n")
+    outputFile.write("Supervised Learner:\n")
     count = 0
     k = sorted(super_dict.keys())
     for i in k:
         count = count + 1
         most = super_dict[i][len(super_dict[i])-1]
         n = len(super_dict[i])
-        print "Label " + str(count) + "\tn = " + str(n) + "\tMost = " + str(most)
+        outputFile.write("Label " + str(count) + "\tn = " + str(n) + "\tMost = " + str(most)+"\n")
 
-def supervised_discretization(data):
+def supervised_discretization(data,outputFile):
     super_dict = {}
     super_dict[0.2]= []
     super_dict[0.6]= []
@@ -85,8 +85,9 @@ def supervised_discretization(data):
             super_dict[0.9].append(data[i])
         else:
             super_dict[1].append(data[i])
-    print_super(super_dict)
+    print_super(super_dict,outputFile)
 
-
-data = unsupervised_discretization()
-supervised_discretization(data)
+outputFile=open('output.txt','w')
+data = unsupervised_discretization(outputFile)
+supervised_discretization(data,outputFile)
+outputFile.close()
