@@ -20,7 +20,7 @@ def getUnsupervisedBins(num_column):
     num_column_index=0
     
     while (bin_size_counter<bin_size) and (num_column_index<len(num_column)):
-        key="Label"+str(dict_index);
+        key="Label "+str(dict_index);
         x_bin.append(num_column[num_column_index])
         num_column_index=num_column_index+1
         bin_size_counter=bin_size_counter+1
@@ -32,18 +32,61 @@ def getUnsupervisedBins(num_column):
             dict_index=dict_index+1
 
     last_index=len(unsuper_dict)
-    if(len(unsuper_dict["Label"+str(last_index)]) < bin_size):        
+    if(len(unsuper_dict["Label " +str(last_index)]) < bin_size):
         second_last_index = last_index-1
-        unsuper_dict["Label"+str(second_last_index)] = unsuper_dict["Label"+str(second_last_index)] + unsuper_dict["Label"+str(last_index)]
-        del unsuper_dict["Label"+str(last_index)]
+        unsuper_dict["Label "+str(second_last_index)] = unsuper_dict["Label "+str(second_last_index)] + unsuper_dict["Label "+str(last_index)]
+        del unsuper_dict["Label "+str(last_index)]
         
     return unsuper_dict
 
-num_column=[]
-unsuper_dict = {}
-num_column = getList()
-num_column.sort()
-unsuper_dict = getUnsupervisedBins(num_column)
-print("Unsupervised learner : ")
-for k, v in unsuper_dict.iteritems():
-    print k, v
+def print_unsuper(unsuper_dict):
+    k = sorted(unsuper_dict.keys())
+    for i in k:
+        high = unsuper_dict[i][len(unsuper_dict[i])-1]
+        low = unsuper_dict[i][0]
+        span = high - low
+        n = len(unsuper_dict[i])
+        print str(i) + "\tn = " + str(n) + "\tSpan = " + str(span) + "\tHigh = " + str(high) + "\tLow = " + str(low)
+
+def unsupervised_discretization():
+    num_column=[]
+    unsuper_dict = {}
+    num_column = getList()
+    num_column.sort()
+    unsuper_dict = getUnsupervisedBins(num_column)
+    print("Unsupervised learner : ")
+    print_unsuper(unsuper_dict)
+    return num_column
+
+def print_super(super_dict):
+    print("")
+    print("Supervised Learner:")
+    count = 0
+    k = sorted(super_dict.keys())
+    for i in k:
+        count = count + 1
+        most = super_dict[i][len(super_dict[i])-1]
+        n = len(super_dict[i])
+        print "Label " + str(count) + "\tn = " + str(n) + "\tMost = " + str(most)
+
+def supervised_discretization(data):
+    super_dict = {}
+    super_dict[0.2]= []
+    super_dict[0.6]= []
+    super_dict[0.9]= []
+    super_dict[1]= []
+
+    for i in range (0,len(data)):
+        if data[i]<0.2:
+            super_dict[0.2].append(data[i])
+        elif data[i]<0.6:
+            super_dict[0.6].append(data[i])
+        elif data[i]<0.9:
+            super_dict[0.9].append(data[i])
+        else:
+            super_dict[1].append(data[i])
+    print_super(super_dict)
+
+
+data = unsupervised_discretization()
+supervised_discretization(data)
