@@ -1,4 +1,4 @@
-HW2 - Unsupervised and Supervised discretization
+HW3 - Unsupervised and Supervised discretization
 
 Prerequisite
 
