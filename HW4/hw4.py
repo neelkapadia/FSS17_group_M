@@ -1,6 +1,7 @@
 import sys
 import math
 import operator
+from copy import deepcopy
 
 class Table:
     name=""
@@ -303,6 +304,13 @@ def get_clean_data():
             minitable = []
     return t
 
+def get_independent_variables(table):
+    indepentdent=[]
+    for i in range(0,len(table.headers)):
+        if (i not in table.goals) and (not table.headers[i].ignore):
+            indepentdent.append(i)
+    return indepentdent
+
 def sort_table(table, col):
     return sorted(table, key=operator.itemgetter(col))
 
@@ -316,18 +324,43 @@ def get_dummy_table(table):
 
     return dummy
 
-def split_by_goal(index,goalbins,goals):
-    print("Goal "+ str(goals.pop(index)))
-    for bin in goalbins[index]:
-        if len(goals)>0:
-            apply_supervised_discretization(bin,goals)
+def get_column_summary(table,ind):
+    sum=0.0
+    for row in table:
+        sum = sum+ float(row[ind])
+    mean= float(sum)/len(table)
+    return mean
+
+def split_by_goal(_index,_goalbins,_goals,_tree_height):
+    goals=deepcopy(_goals)
+    index=deepcopy(_index)
+    goalbins=deepcopy(_goalbins)
+    tree_height=_tree_height
+    poppedIndex=goals.pop(_index)
 
 
-def apply_supervised_discretization(dummy_table,goals):
+
+    '''for bin in goalbins[index]:
+        print("Len : " + str(len(bin)))'''
+
+    for _bin in goalbins[index]:
+        for i in range(1, tree_height):
+            sys.stdout.write("|     ")
+        print(str(table.headers[poppedIndex].columnName) + "  :  =  "+ str(get_column_summary(_bin,poppedIndex)))
+        if len(_goals)>0:
+            apply_supervised_discretization(_bin,goals,tree_height)
+            #print("Bin:: "+ str(len(bin)))
+
+
+
+
+def apply_supervised_discretization(table,goals,tree_height):
+
     doms=[]
     goalbins=[]
+    dummy_table=deepcopy(table)
     for goal in goals:
-        print("For goal "+ str(goal))
+        #print("For goal "+ str(goal))
         epsilon = 0
         sum=0.0
         for row in dummy_table:
@@ -337,8 +370,8 @@ def apply_supervised_discretization(dummy_table,goals):
         variance=0.0
         for row in dummy_table:
             variance = variance + math.pow(float(row[goal])-mean,2)
-        sd=math.pow(variance/table.rowCount,0.5)
-        epsilon=0.01*sd
+        sd=math.pow(variance/len(dummy_table),0.5)
+        epsilon=0.2*sd
 
 
         dummy_table=sort_table(dummy_table,goal)
@@ -346,19 +379,21 @@ def apply_supervised_discretization(dummy_table,goals):
             print(str(row) + "  "+ str(dummy_table.index(row)))'''
 
         bins=[]
-        bin=[]
-
+        binsLength=0
         for i in range(0,len(dummy_table)):
             if i==0:
-                bin.append(dummy_table[i])
+                bins.append([])
+                bins[binsLength].append(dummy_table[i])
             else:
-                if (float(dummy_table[i][goal])-float(dummy_table[i-1][goal])) > epsilon and (len(bin)>math.pow(len(dummy_table),0.5)):
-                    bins.append(bin)
-                    bin=[]
-                    bin.append(dummy_table[i])
+                if ((float(dummy_table[i][goal])-float(dummy_table[i-1][goal])) > epsilon ):
+                    bins.append([])
+                    binsLength=binsLength+1
+                    bins[binsLength].append(dummy_table[i])
                 else:
-                    bin.append(dummy_table[i])
-        print(len(bins))
+                    bins[binsLength].append(dummy_table[i])
+
+        #print(" Goal : "+ str(table.headers[goal].columnName) +"  "+str(binsLength))
+        #print(len(bins))
             #print(str(dummy_table[i][goal]) +" "+str(goal))
             #print(str(float(dummy_table[i][3])) +"   "+ str(float(dummy_table[i - 1][3]) )+ " "+ str(epsilon) + "   "+str(goal) )
         goalbins.append(bins)
@@ -377,9 +412,10 @@ def apply_supervised_discretization(dummy_table,goals):
             dom = dom+ (sd*len(bin))
         dom=dom/len(dummy_table)
         doms.append(dom)
-        print(dom)
 
-    split_by_goal(doms.index(min(doms)),goalbins,goals)
+        #print(str(len(bins)) + " HA HA  " + str(goal))
+    if len(doms)>0:
+        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1)
 
 
 if __name__=='__main__':
@@ -389,10 +425,10 @@ if __name__=='__main__':
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
     table.update_headers()
-    table.normalize()
     table.print_top5_dominating_row( inputTable[0], outputFile)
     dummy_table = get_dummy_table(table)
-    apply_supervised_discretization(dummy_table,table.goals)
+    independent_variables=get_independent_variables(table)
+    apply_supervised_discretization(dummy_table,independent_variables,0)
 
 
 
