@@ -324,12 +324,25 @@ def get_dummy_table(table):
 
     return dummy
 
-def get_column_summary(table,ind):
+def get_bin_mean(table,ind):
     sum=0.0
     for row in table:
         sum = sum+ float(row[ind])
     mean= float(sum)/len(table)
     return mean
+
+def get_bin_sd(table,ind):
+    sum = 0.0
+    for row in table:
+        sum = sum + float(row[ind])
+    mean = float(sum) / len(table)
+
+    sum=0.0
+    for row in table:
+        sum = sum+ math.pow(float(row[ind])-mean,2)
+    sd= float(sum)/len(table)
+    sd= math.pow(sd,0.5)
+    return sd
 
 def split_by_goal(_index,_goalbins,_goals,_tree_height):
     goals=deepcopy(_goals)
@@ -344,12 +357,13 @@ def split_by_goal(_index,_goalbins,_goals,_tree_height):
         print("Len : " + str(len(bin)))'''
 
     for _bin in goalbins[index]:
-        for i in range(1, tree_height):
-            sys.stdout.write("|     ")
-        print(str(table.headers[poppedIndex].columnName) + "  :  =  "+ str(get_column_summary(_bin,poppedIndex)))
-        if len(_goals)>0:
-            apply_supervised_discretization(_bin,goals,tree_height)
-            #print("Bin:: "+ str(len(bin)))
+        if(get_bin_sd(_bin,poppedIndex)!=0):
+            for i in range(1, tree_height):
+                sys.stdout.write("|     ")
+            print(str(table.headers[poppedIndex].columnName) + "                                 : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex)))
+            if len(_goals)>0:
+                apply_supervised_discretization(_bin,goals,tree_height)
+                #print("Bin:: "+ str(len(bin)))
 
 
 
@@ -385,7 +399,7 @@ def apply_supervised_discretization(table,goals,tree_height):
                 bins.append([])
                 bins[binsLength].append(dummy_table[i])
             else:
-                if ((float(dummy_table[i][goal])-float(dummy_table[i-1][goal])) > epsilon ):
+                if (((float(dummy_table[i][goal])-float(dummy_table[i-1][goal])) > epsilon) and (len(bins[binsLength])>10)):
                     bins.append([])
                     binsLength=binsLength+1
                     bins[binsLength].append(dummy_table[i])
