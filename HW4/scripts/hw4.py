@@ -344,7 +344,7 @@ def get_bin_sd(table,ind):
     sd= math.pow(sd,0.5)
     return sd
 
-def split_by_goal(_index,_goalbins,_goals,_tree_height):
+def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile):
     goals=deepcopy(_goals)
     index=deepcopy(_index)
     goalbins=deepcopy(_goalbins)
@@ -359,16 +359,16 @@ def split_by_goal(_index,_goalbins,_goals,_tree_height):
     for _bin in goalbins[index]:
         if(get_bin_sd(_bin,poppedIndex)!=0):
             for i in range(1, tree_height):
-                sys.stdout.write("|     ")
-            print(str(table.headers[poppedIndex].columnName) + "                                 : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex)))
+                outputFile.write("|     ")
+            outputFile.write(str(table.headers[poppedIndex].columnName) + "                                 : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex))+"\n")
             if len(_goals)>0:
-                apply_supervised_discretization(_bin,goals,tree_height)
+                apply_supervised_discretization(_bin,goals,tree_height,outputFile)
                 #print("Bin:: "+ str(len(bin)))
 
 
 
 
-def apply_supervised_discretization(table,goals,tree_height):
+def apply_supervised_discretization(table,goals,tree_height,outputFile):
 
     doms=[]
     goalbins=[]
@@ -385,7 +385,7 @@ def apply_supervised_discretization(table,goals,tree_height):
         for row in dummy_table:
             variance = variance + math.pow(float(row[goal])-mean,2)
         sd=math.pow(variance/len(dummy_table),0.5)
-        epsilon=0.2*sd
+        epsilon=0.15*sd
 
 
         dummy_table=sort_table(dummy_table,goal)
@@ -429,7 +429,7 @@ def apply_supervised_discretization(table,goals,tree_height):
 
         #print(str(len(bins)) + " HA HA  " + str(goal))
     if len(doms)>0:
-        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1)
+        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1,outputFile)
 
 
 if __name__=='__main__':
@@ -439,10 +439,9 @@ if __name__=='__main__':
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
     table.update_headers()
-    table.print_top5_dominating_row( inputTable[0], outputFile)
     dummy_table = get_dummy_table(table)
     independent_variables=get_independent_variables(table)
-    apply_supervised_discretization(dummy_table,independent_variables,0)
+    apply_supervised_discretization(dummy_table,independent_variables,0,outputFile)
 
 
 
