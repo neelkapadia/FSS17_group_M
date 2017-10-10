@@ -1,19 +1,19 @@
-HW3 - Unsupervised and Supervised discretization
-
+HW4 - Regression Tree
 Prerequisite
 
 Python 2.7.0
 
 Input
 
-None (The code creates an array of random numbers)
+input.csv
 
 Output
 
-Print all the bins.
+prints details about each node, indented by its level in tree
+Output will be in output.txt file
 
 Test
 
 To run program using command line
 
-python hw3.py
+python scripts/hw4.py data/input.csv
