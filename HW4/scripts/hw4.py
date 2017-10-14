@@ -1,7 +1,9 @@
 import sys
-import math
+
 import operator
+import math
 from copy import deepcopy
+
 
 class Table:
     name=""
