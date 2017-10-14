@@ -1,11 +1,10 @@
 import sys
-import math
+
 import operator
-import numpy
+import math
 from copy import deepcopy
-nodeNo=0
-nodes=[]
-dict={}
+
+
 class Table:
     name=""
     headers=[]
@@ -365,74 +364,39 @@ def normalize(_table,goals):
 
 def get_performance(_bin,outputFile,goals):
     bin=normalize(_bin,goals)
-    res=[]
+    sum=0
+    for goal in goals:
+        weight= table.headers[goal].weight
+        for row in bin:
+            sum=sum+(weight*row[goal])
 
-    for row in bin:
-        for goal in goals:
-            weight= table.headers[goal].weight
-            res.append(weight*row[goal])
+    return sum
 
-    res.sort()
-    return (numpy.median(res))
-
-def isStatisticallySignificant(bin1,bin2,index):
-    mean1=get_bin_mean(bin1,index)
-    mean2=get_bin_mean(bin2,index)
-    numerator= math.fabs(mean1-mean2)
-    if len(bin1)> len(bin2):
-        sd=get_bin_sd(bin1,index)
-        rootN=math.pow(len(bin1),0.5)
-    else:
-        sd=get_bin_sd(bin2,index)
-        rootN = math.pow(len(bin2), 0.5)
-    denominator=float(sd)/float(rootN)
-    if denominator!=0:
-        ttest= float(numerator)/float(denominator)
-    else:
-        ttest=0
-    if ttest>90:
-        return True
-    else:
-        return False
-
-def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile,realgoals,_result,_splitNodes):
-    global nodeNo
-    global nodes
-    splittingNode=deepcopy(nodeNo)
-    localnode=deepcopy(nodeNo)
-    localnodebin=[]
+def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile,realgoals):
     goals=deepcopy(_goals)
     index=deepcopy(_index)
     goalbins=deepcopy(_goalbins)
     tree_height=_tree_height
     poppedIndex=goals.pop(_index)
-    result=deepcopy(_result)
-    splitNodes=deepcopy(_splitNodes)
-    details_mean=[]
-    indexpoppeddetails=[]
+    result=[]
 
     for _bin in goalbins[index]:
         if(get_bin_sd(_bin,poppedIndex)!=0):
             for i in range(1, tree_height):
                 outputFile.write("|     ")
-            outputFile.write(str(nodeNo)+" : "+str(table.headers[poppedIndex].columnName) + "                               : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex))+"\n")
+            outputFile.write(str(table.headers[poppedIndex].columnName) + "                               : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex))+"\n")
             if len(_goals)>0:
-                nodeNo = nodeNo + 1
-                splittingNode=splittingNode+1
-                splitNodes.append(splittingNode)
+                apply_supervised_discretization(_bin,goals,tree_height,outputFile,realgoals)
                 result.append(get_performance(_bin,outputFile,realgoals))
-                apply_supervised_discretization(_bin,goals,tree_height,outputFile,realgoals,_result,_splitNodes)
+                print(str(result[0]) + "   " + str(table.headers[poppedIndex].columnName) )
+                #print("Bin:: "+ str(len(bin)))
 
-    for i in range(0,len(goalbins[index])-1):
-        for j in range(i+1,len(goalbins[index])):
-            if (get_bin_sd(goalbins[index][i], poppedIndex) != 0) and (get_bin_sd(goalbins[index][j], poppedIndex) != 0):
-                #print(str(i)+" "+str(j) + "  "+ str(table.headers[poppedIndex].columnName))
-                if(isStatisticallySignificant(goalbins[index][i],goalbins[index][j],poppedIndex)):
-                    if(result[i]>result[j]):
-                        print( str(splitNodes[i]) +" is a plan  and  "+ str(splitNodes[j]) +" is a monitor"  )
+    print(len(result))
 
 
-def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals,result,splitNodes):
+
+
+def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals):
 
     doms=[]
     goalbins=[]
@@ -449,7 +413,7 @@ def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals
         for row in dummy_table:
             variance = variance + math.pow(float(row[goal])-mean,2)
         sd=math.pow(variance/len(dummy_table),0.5)
-        epsilon=0.15*sd
+        epsilon=0.23*sd
 
 
         dummy_table=sort_table(dummy_table,goal)
@@ -493,7 +457,7 @@ def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals
 
         #print(str(len(bins)) + " HA HA  " + str(goal))
     if len(doms)>0:
-        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1,outputFile,realgoals,result,splitNodes)
+        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1,outputFile,realgoals)
 
 
 if __name__=='__main__':
@@ -505,7 +469,7 @@ if __name__=='__main__':
     table.update_headers()
     dummy_table = get_dummy_table(table)
     independent_variables=get_independent_variables(table)
-    apply_supervised_discretization(dummy_table,independent_variables,0,outputFile,table.goals,[],[])
+    apply_supervised_discretization(dummy_table,independent_variables,0,outputFile,table.goals)
 
 
 

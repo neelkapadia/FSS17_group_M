@@ -512,7 +512,4 @@ if __name__=='__main__':
     dummy_table = get_dummy_table(table)
     independent_variables=get_independent_variables(table)
     apply_supervised_discretization(dummy_table,independent_variables,0,outputFile,table.goals,[],[])
-
-
-
     outputFile.close()
