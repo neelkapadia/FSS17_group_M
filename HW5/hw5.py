@@ -390,7 +390,7 @@ def isStatisticallySignificant(bin1,bin2,index):
         ttest= float(numerator)/float(denominator)
     else:
         ttest=0
-    if ttest>90:
+    if ttest>70:
         return True
     else:
         return False
@@ -411,17 +411,23 @@ def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile,realgoals,_res
     details_mean=[]
     indexpoppeddetails=[]
 
+
+
     for _bin in goalbins[index]:
         if(get_bin_sd(_bin,poppedIndex)!=0):
             for i in range(1, tree_height):
                 outputFile.write("|     ")
             outputFile.write(str(nodeNo)+" : "+str(table.headers[poppedIndex].columnName) + "                               : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex))+"\n")
             if len(_goals)>0:
+                bi=dict.get(tree_height,[])
+                bi.append(nodeNo)
+                dict[tree_height]=bi
                 nodeNo = nodeNo + 1
-                splittingNode=splittingNode+1
-                splitNodes.append(splittingNode)
                 result.append(get_performance(_bin,outputFile,realgoals))
-                apply_supervised_discretization(_bin,goals,tree_height,outputFile,realgoals,_result,_splitNodes)
+                apply_supervised_discretization(_bin,goals,tree_height,outputFile,realgoals,result,_splitNodes)
+
+
+
 
     for i in range(0,len(goalbins[index])-1):
         for j in range(i+1,len(goalbins[index])):
@@ -429,7 +435,7 @@ def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile,realgoals,_res
                 #print(str(i)+" "+str(j) + "  "+ str(table.headers[poppedIndex].columnName))
                 if(isStatisticallySignificant(goalbins[index][i],goalbins[index][j],poppedIndex)):
                     if(result[i]>result[j]):
-                        print( str(splitNodes[i]) +" is a plan  and  "+ str(splitNodes[j]) +" is a monitor"  )
+                        print( str(dict.get(tree_height)[i]) +" is a plan  and  "+ str(dict.get(tree_height)[j]) +" is a monitor"  )
 
 
 def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals,result,splitNodes):
