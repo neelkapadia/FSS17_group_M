@@ -390,7 +390,7 @@ def isStatisticallySignificant(bin1,bin2,index):
         ttest= float(numerator)/float(denominator)
     else:
         ttest=0
-    if ttest>70:
+    if ttest>80:
         return True
     else:
         return False
