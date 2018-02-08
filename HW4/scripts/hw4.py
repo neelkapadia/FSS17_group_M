@@ -1,6 +1,8 @@
-from multiprocessing import Queue
-import math
 import sys
+
+import operator
+import math
+from copy import deepcopy
 
 
 class Table:
@@ -104,17 +106,15 @@ class Table:
             for j in range(i+1,len(self.rows)):
                 self.calculate_domination(i,j)
 
-    def print_top5_dominating_row(self,inputTable,headerLine,outputFile):
+    def print_top5_dominating_row(self,headerLine,outputFile):
         outputFile.write("Top 10 dominating rows:\n")
         for attribute in headerLine:
             outputFile.write(str(attribute) + "\t")
         outputFile.write("\n")
-        for j in range(0, 10):
-            for i in range(0,len(self.list)):
-                if len(self.list[i])==j:
-                    #outputFile.write(str(i)+"\t")
-                    for cell in inputTable[i]:
-                        outputFile.write(str(cell) +"\t")
+        for row in table.rows:
+            for cell in row.cells:
+                outputFile.write(str(cell.value) + "\t")
+
             outputFile.write("\n")
         outputFile.write("\n \n")
 
@@ -246,6 +246,7 @@ def add_headers(table,line):
                 i = i + 1
     return table
 
+
 def get_clean_data():
     def process_header(line, header):
         try:
@@ -305,22 +306,171 @@ def get_clean_data():
             minitable = []
     return t
 
+def get_independent_variables(table):
+    indepentdent=[]
+    for i in range(0,len(table.headers)):
+        if (i not in table.goals) and (not table.headers[i].ignore):
+            indepentdent.append(i)
+    return indepentdent
+
+def sort_table(table, col):
+    return sorted(table, key=operator.itemgetter(col))
+
+def get_dummy_table(table):
+    dummy=[]
+    for row in table.rows:
+        ro=[]
+        for cell in row.cells:
+            ro.append(cell.value)
+        dummy.append(ro)
+
+    return dummy
+
+def get_bin_mean(table,ind):
+    sum=0.0
+    for row in table:
+        sum = sum+ float(row[ind])
+    mean= float(sum)/len(table)
+    return mean
+
+def get_bin_sd(table,ind):
+    sum = 0.0
+    for row in table:
+        sum = sum + float(row[ind])
+    mean = float(sum) / len(table)
+
+    sum=0.0
+    for row in table:
+        sum = sum+ math.pow(float(row[ind])-mean,2)
+    sd= float(sum)/len(table)
+    sd= math.pow(sd,0.5)
+    return sd
+
+def normalize(_table,goals):
+    table=  deepcopy(_table)
+    for goal in goals:
+        min=10000
+        max=0
+        for row in table:
+            if row[goal]>max:
+                max=row[goal]
+            if row[goal]<min:
+                min=row[goal]
+        if max!=min:
+            for row in table:
+                row[goal]=((row[goal]-min)/(max-min))
+
+    return table
+
+def get_performance(_bin,outputFile,goals):
+    bin=normalize(_bin,goals)
+    sum=0
+    for goal in goals:
+        weight= table.headers[goal].weight
+        for row in bin:
+            sum=sum+(weight*row[goal])
+
+    return sum
+
+def split_by_goal(_index,_goalbins,_goals,_tree_height,outputFile,realgoals):
+    goals=deepcopy(_goals)
+    index=deepcopy(_index)
+    goalbins=deepcopy(_goalbins)
+    tree_height=_tree_height
+    poppedIndex=goals.pop(_index)
+    result=[]
+
+    for _bin in goalbins[index]:
+        if(get_bin_sd(_bin,poppedIndex)!=0):
+            for i in range(1, tree_height):
+                outputFile.write("|     ")
+            outputFile.write(str(table.headers[poppedIndex].columnName) + "                               : n= "+ str(len(_bin)) +", mu =  "+ str(get_bin_mean(_bin,poppedIndex))+", sd = "+str(get_bin_sd(_bin,poppedIndex))+"\n")
+            if len(_goals)>0:
+                apply_supervised_discretization(_bin,goals,tree_height,outputFile,realgoals)
+                result.append(get_performance(_bin,outputFile,realgoals))
+                print(str(result[0]) + "   " + str(table.headers[poppedIndex].columnName) )
+                #print("Bin:: "+ str(len(bin)))
+
+    print(len(result))
+
+
+
+
+def apply_supervised_discretization(table,goals,tree_height,outputFile,realgoals):
+
+    doms=[]
+    goalbins=[]
+    dummy_table=deepcopy(table)
+    for goal in goals:
+        #print("For goal "+ str(goal))
+        epsilon = 0
+        sum=0.0
+        for row in dummy_table:
+            #print(row.cells[table.goals.index(goal)].value)
+            sum = sum + float(row[goal])
+        mean= sum/(len(dummy_table))
+        variance=0.0
+        for row in dummy_table:
+            variance = variance + math.pow(float(row[goal])-mean,2)
+        sd=math.pow(variance/len(dummy_table),0.5)
+        epsilon=0.23*sd
+
+
+        dummy_table=sort_table(dummy_table,goal)
+        '''for row in dummy_table:
+            print(str(row) + "  "+ str(dummy_table.index(row)))'''
+
+        bins=[]
+        binsLength=0
+        for i in range(0,len(dummy_table)):
+            if i==0:
+                bins.append([])
+                bins[binsLength].append(dummy_table[i])
+            else:
+                if (((float(dummy_table[i][goal])-float(dummy_table[i-1][goal])) > epsilon) and (len(bins[binsLength])>10)):
+                    bins.append([])
+                    binsLength=binsLength+1
+                    bins[binsLength].append(dummy_table[i])
+                else:
+                    bins[binsLength].append(dummy_table[i])
+
+        #print(" Goal : "+ str(table.headers[goal].columnName) +"  "+str(binsLength))
+        #print(len(bins))
+            #print(str(dummy_table[i][goal]) +" "+str(goal))
+            #print(str(float(dummy_table[i][3])) +"   "+ str(float(dummy_table[i - 1][3]) )+ " "+ str(epsilon) + "   "+str(goal) )
+        goalbins.append(bins)
+        dom=0
+        for bin in bins:
+            sum=0
+            for row in bin:
+                sum= sum + float(row[goal])
+            mean= sum/len(bin)
+            var=0
+            for row in bin:
+                var= var + math.pow(float(row[goal])-mean,2)
+            var= var/len(bin)
+            sd=math.pow(var,0.5)
+
+            dom = dom+ (sd*len(bin))
+        dom=dom/len(dummy_table)
+        doms.append(dom)
+
+        #print(str(len(bins)) + " HA HA  " + str(goal))
+    if len(doms)>0:
+        split_by_goal(doms.index(max(doms)),goalbins,goals,tree_height+1,outputFile,realgoals)
+
 
 if __name__=='__main__':
-    outputFile=open('output.txt','w')
+    outputFile = open('output.txt', 'w')
     inputTable = get_clean_data()
     table = create_table('DataTable')
     table = add_headers(table, inputTable[0])
     table.add_rows(inputTable[1:])
-
     table.update_headers()
-    table.normalize()
-    table.calculate_entropy()
-    table.find_dominating_rows()
-    table.print_top5_dominating_row(inputTable[1:],inputTable[0],outputFile)
-    table.print_bottom5_dominating_row(inputTable[1:],inputTable[0],outputFile)
+    dummy_table = get_dummy_table(table)
+    independent_variables=get_independent_variables(table)
+    apply_supervised_discretization(dummy_table,independent_variables,0,outputFile,table.goals)
+
+
+
     outputFile.close()
-
-
-
-
